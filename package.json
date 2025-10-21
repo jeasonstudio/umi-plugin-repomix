@@ -19,6 +19,14 @@
   ],
   "author": "jeasonstudio",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jeasonstudio/umi-plugin-repomix.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jeasonstudio/umi-plugin-repomix/issues"
+  },
+  "homepage": "https://github.com/jeasonstudio/umi-plugin-repomix#readme",
   "peerDependencies": {
     "umi": "^4.0.0"
   },
