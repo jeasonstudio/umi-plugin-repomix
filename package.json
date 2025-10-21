@@ -1,0 +1,36 @@
+{
+  "name": "umi-plugin-repomix",
+  "version": "1.0.0",
+  "description": "Umijs plugin for repomix - automatically generates llms.txt and llms-full.txt",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "umi",
+    "umijs",
+    "plugin",
+    "repomix",
+    "llms",
+    "dumi"
+  ],
+  "author": "jeasonstudio",
+  "license": "MIT",
+  "peerDependencies": {
+    "umi": "^4.0.0"
+  },
+  "dependencies": {
+    "repomix": "^1.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "umi": "^4.0.0"
+  },
+  "files": [
+    "dist"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "output": {
+    "style": "markdown",
+    "removeComments": false,
+    "showLineNumbers": true,
+    "copyToClipboard": false
+  },
+  "include": ["**/*"],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.spec.ts",
+      "**/*.spec.tsx",
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.umi/**",
+      "**/.umi-production/**"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}
