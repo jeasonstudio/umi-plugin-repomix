@@ -49,14 +49,22 @@ export default {
     // 何时生成文件，可选值：'buildStart' | 'buildEnd'，默认为 'buildEnd'
     generateOn: 'buildEnd',
     
-    // repomix 配置文件路径
-    configPath: './repomix.config.json',
-    
-    // 额外的 repomix 命令行参数
-    repomixArgs: ['--style', 'xml'],
-    
     // 输出目录，默认为 'dist'
     outputDir: 'dist',
+    
+    // Repomix 配置选项
+    config: {
+      output: {
+        style: 'markdown',
+        removeComments: false,
+        showLineNumbers: true,
+      },
+      ignore: {
+        useGitignore: true,
+        useDefaultPatterns: true,
+        customPatterns: ['**/*.test.ts', '**/*.spec.ts'],
+      },
+    },
   },
 };
 ```
@@ -76,28 +84,27 @@ export default {
 
 #### 使用自定义 repomix 配置
 
-首先创建 `repomix.config.json`：
-
-```json
-{
-  "output": {
-    "style": "xml",
-    "removeComments": false,
-    "showLineNumbers": true
-  },
-  "ignore": {
-    "customPatterns": ["**/*.test.ts", "**/*.spec.ts"]
-  }
-}
-```
-
-然后在 UmiJS 配置中引用：
+直接在 UmiJS 配置中配置 repomix 选项：
 
 ```typescript
 export default {
   plugins: ['umi-plugin-repomix'],
   repomix: {
-    configPath: './repomix.config.json',
+    config: {
+      output: {
+        style: 'xml',
+        removeComments: false,
+        showLineNumbers: true,
+      },
+      ignore: {
+        useGitignore: true,
+        useDefaultPatterns: true,
+        customPatterns: ['**/*.test.ts', '**/*.spec.ts'],
+      },
+      security: {
+        enableSecurityCheck: true,
+      },
+    },
   },
 };
 ```
@@ -115,20 +122,25 @@ export default {
 
 ## Repomix 配置
 
-关于 repomix 的详细配置，请参考 [Repomix 官方文档](https://repomix.com/zh-cn/guide/configuration)。
+插件使用 Repomix SDK，所有配置都通过 UmiJS 配置的 `repomix.config` 选项传递。关于 repomix 的详细配置，请参考 [Repomix 官方文档](https://repomix.com/zh-cn/guide/configuration)。
 
 常用配置选项：
 
-- `output.style`: 输出格式（`plain`、`xml`、`markdown`）
+- `output.style`: 输出格式（`plain`、`xml`、`markdown`、`json`）
 - `output.removeComments`: 是否移除注释
 - `output.showLineNumbers`: 是否显示行号
+- `output.fileSummary`: 是否包含文件摘要
+- `output.directoryStructure`: 是否包含目录结构
+- `ignore.useGitignore`: 是否使用 .gitignore
+- `ignore.useDefaultPatterns`: 是否使用默认忽略模式
 - `ignore.customPatterns`: 自定义忽略的文件模式
+- `security.enableSecurityCheck`: 是否启用安全检查
 
 ## 工作原理
 
 1. 插件在 UmiJS 构建流程中注册钩子
-2. 在指定的时机（构建开始或结束）调用 repomix
-3. 生成 `llms.txt`（标准版本）和 `llms-full.txt`（详细版本）
+2. 在指定的时机（构建开始或结束）使用 Repomix SDK 的 `pack` 函数
+3. 生成 `llms.txt`（标准版本）和 `llms-full.txt`（详细版本，包含文件摘要、目录结构、行号等）
 4. 文件输出到指定的目录
 
 ## 常见问题

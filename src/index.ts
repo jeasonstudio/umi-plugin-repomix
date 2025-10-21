@@ -1,10 +1,7 @@
 import type { IApi } from 'umi';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
+import { pack, mergeConfigs, type RepomixConfig } from 'repomix';
 import * as path from 'path';
 import * as fs from 'fs';
-
-const execFileAsync = promisify(execFile);
 
 export interface RepomixPluginConfig {
   /**
@@ -18,18 +15,14 @@ export interface RepomixPluginConfig {
    */
   generateOn?: 'buildStart' | 'buildEnd';
   /**
-   * repomix 配置文件路径
-   */
-  configPath?: string;
-  /**
-   * repomix 额外参数
-   */
-  repomixArgs?: string[];
-  /**
    * 输出目录
    * @default 'dist'
    */
   outputDir?: string;
+  /**
+   * Repomix 配置选项
+   */
+  config?: RepomixConfig;
 }
 
 export default (api: IApi) => {
@@ -40,9 +33,8 @@ export default (api: IApi) => {
         return zod.object({
           enabled: zod.boolean().optional(),
           generateOn: zod.enum(['buildStart', 'buildEnd']).optional(),
-          configPath: zod.string().optional(),
-          repomixArgs: zod.array(zod.string()).optional(),
           outputDir: zod.string().optional(),
+          config: zod.any().optional(), // RepomixConfig - complex nested schema, use any for simplicity
         });
       },
       default: {
@@ -76,69 +68,61 @@ export default (api: IApi) => {
         fs.mkdirSync(outputPath, { recursive: true });
       }
 
-      // 构建 repomix 命令参数数组（安全方式）
-      const args: string[] = ['repomix'];
-
-      // 添加配置文件参数
-      if (config.configPath) {
-        // 使用 path.resolve 确保路径安全
-        const resolvedConfigPath = path.resolve(cwd, config.configPath);
-        args.push('--config', resolvedConfigPath);
-      }
-
-      // 添加输出参数 - 生成到输出目录
+      // 构建 repomix 配置
       const llmsOutputPath = path.join(outputPath, 'llms.txt');
-      args.push('--output', llmsOutputPath);
+      const llmsFullOutputPath = path.join(outputPath, 'llms-full.txt');
 
-      // 添加额外的参数
-      if (config.repomixArgs && config.repomixArgs.length > 0) {
-        args.push(...config.repomixArgs);
-      }
+      // 合并用户配置和默认配置
+      const fileConfig: RepomixConfig = config.config || {};
+      const cliConfig = {
+        output: {
+          filePath: llmsOutputPath,
+        },
+      };
 
-      api.logger.info(`[repomix] 执行命令: npx ${args.join(' ')}`);
+      const repomixConfig = mergeConfigs(cwd, fileConfig, cliConfig);
 
-      // 执行命令生成 llms.txt
-      const { stdout: stdout1, stderr: stderr1 } = await execFileAsync('npx', args, {
-        cwd,
-        maxBuffer: 10 * 1024 * 1024, // 10MB buffer
-      });
+      api.logger.info(`[repomix] 生成 llms.txt...`);
 
-      if (stderr1 && !stderr1.includes('warn')) {
-        api.logger.error(`[repomix] stderr: ${stderr1}`);
-      }
-      if (stdout1) {
-        api.logger.info(`[repomix] ${stdout1.trim()}`);
-      }
+      // 生成 llms.txt
+      const result1 = await pack([cwd], repomixConfig);
 
-      // 生成 llms-full.txt (包含更详细的信息)
-      const fullArgs = [...args];
-      const outputIndex = fullArgs.indexOf('--output');
-      if (outputIndex !== -1) {
-        fullArgs[outputIndex + 1] = path.join(outputPath, 'llms-full.txt');
-      }
-      fullArgs.push('--verbose');
+      api.logger.info(
+        `[repomix] llms.txt 生成完成: ${result1.totalFiles} 个文件, ${result1.totalCharacters} 个字符, ${result1.totalTokens} tokens`
+      );
 
-      api.logger.info(`[repomix] 生成详细版本...`);
+      // 生成 llms-full.txt (包含更多详细信息)
+      const cliFullConfig = {
+        output: {
+          filePath: llmsFullOutputPath,
+          fileSummary: true,
+          directoryStructure: true,
+          showLineNumbers: true,
+          git: {
+            includeDiffs: true,
+            includeLogs: true,
+            includeLogsCount: 10,
+          },
+        },
+      };
 
-      const { stdout: stdout2, stderr: stderr2 } = await execFileAsync('npx', fullArgs, {
-        cwd,
-        maxBuffer: 10 * 1024 * 1024,
-      });
+      const repomixFullConfig = mergeConfigs(cwd, fileConfig, cliFullConfig);
 
-      if (stderr2 && !stderr2.includes('warn')) {
-        api.logger.error(`[repomix] stderr: ${stderr2}`);
-      }
-      if (stdout2) {
-        api.logger.info(`[repomix] ${stdout2.trim()}`);
-      }
+      api.logger.info(`[repomix] 生成 llms-full.txt...`);
+
+      const result2 = await pack([cwd], repomixFullConfig);
+
+      api.logger.info(
+        `[repomix] llms-full.txt 生成完成: ${result2.totalFiles} 个文件, ${result2.totalCharacters} 个字符, ${result2.totalTokens} tokens`
+      );
 
       api.logger.info('[repomix] ✅ 成功生成 llms.txt 和 llms-full.txt');
     } catch (error) {
       api.logger.error('[repomix] ❌ 生成文件失败:');
       if (error instanceof Error) {
         api.logger.error(error.message);
-        if ('stderr' in error) {
-          api.logger.error((error as any).stderr);
+        if (error.stack) {
+          api.logger.error(error.stack);
         }
       }
       // 不抛出错误，避免中断构建流程

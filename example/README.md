@@ -5,7 +5,7 @@ This directory contains an example configuration for using `umi-plugin-repomix` 
 ## Files
 
 - `.umirc.ts` - Example UmiJS configuration with the repomix plugin enabled
-- `repomix.config.json` - Example repomix configuration file
+- `repomix.config.json` - Example repomix configuration file (for reference, not used by plugin)
 
 ## Usage
 
@@ -17,7 +17,7 @@ npm install umi-plugin-repomix --save-dev
 
 2. Copy the configuration from `.umirc.ts` to your project's configuration file
 
-3. (Optional) Copy and customize `repomix.config.json` to fit your project's needs
+3. Customize the `repomix.config` options in your UmiJS configuration to fit your project's needs
 
 4. Run your UmiJS build:
 
@@ -28,5 +28,7 @@ npm run build
 5. After the build completes, you'll find `llms.txt` and `llms-full.txt` in your `dist` directory
 
 ## Configuration Options
+
+All repomix configuration is done through the UmiJS config file. The plugin uses Repomix SDK internally.
 
 See the main README.md for detailed configuration options.
