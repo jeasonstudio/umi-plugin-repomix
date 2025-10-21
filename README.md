@@ -32,38 +32,39 @@ pnpm add umi-plugin-repomix -D
 ```typescript
 export default {
   plugins: ['umi-plugin-repomix'],
+  // 安装后默认启用，无需额外配置
 };
 ```
 
-插件会在构建完成后自动生成 `llms.txt` 和 `llms-full.txt` 文件到 `dist` 目录。
+### 禁用插件
+
+```typescript
+export default {
+  plugins: ['umi-plugin-repomix'],
+  repomix: false, // 禁用插件
+};
+```
 
 ### 配置选项
+
+所有配置选项都是标准的 Repomix 配置，直接在 `repomix` 字段中设置：
 
 ```typescript
 export default {
   plugins: ['umi-plugin-repomix'],
   repomix: {
-    // 是否启用插件，默认为 true
-    enabled: true,
-    
-    // 何时生成文件，可选值：'buildStart' | 'buildEnd'，默认为 'buildEnd'
-    generateOn: 'buildEnd',
-    
-    // 输出目录，默认为 'dist'
-    outputDir: 'dist',
-    
-    // Repomix 配置选项
-    config: {
-      output: {
-        style: 'markdown',
-        removeComments: false,
-        showLineNumbers: true,
-      },
-      ignore: {
-        useGitignore: true,
-        useDefaultPatterns: true,
-        customPatterns: ['**/*.test.ts', '**/*.spec.ts'],
-      },
+    output: {
+      style: 'markdown', // 输出格式，默认为 markdown
+      removeComments: false,
+      showLineNumbers: true,
+    },
+    ignore: {
+      useGitignore: true,
+      useDefaultPatterns: true,
+      customPatterns: ['**/*.test.ts', '**/*.spec.ts'],
+    },
+    security: {
+      enableSecurityCheck: true,
     },
   },
 };
@@ -71,51 +72,32 @@ export default {
 
 ### 配置示例
 
-#### 在构建开始时生成
+#### 自定义忽略模式
 
 ```typescript
 export default {
   plugins: ['umi-plugin-repomix'],
   repomix: {
-    generateOn: 'buildStart',
-  },
-};
-```
-
-#### 使用自定义 repomix 配置
-
-直接在 UmiJS 配置中配置 repomix 选项：
-
-```typescript
-export default {
-  plugins: ['umi-plugin-repomix'],
-  repomix: {
-    config: {
-      output: {
-        style: 'xml',
-        removeComments: false,
-        showLineNumbers: true,
-      },
-      ignore: {
-        useGitignore: true,
-        useDefaultPatterns: true,
-        customPatterns: ['**/*.test.ts', '**/*.spec.ts'],
-      },
-      security: {
-        enableSecurityCheck: true,
-      },
+    ignore: {
+      useGitignore: true,
+      useDefaultPatterns: true,
+      customPatterns: ['**/*.test.ts', '**/*.spec.ts', '**/.umi/**'],
     },
   },
 };
 ```
 
-#### 自定义输出目录
+#### 自定义输出格式
 
 ```typescript
 export default {
   plugins: ['umi-plugin-repomix'],
   repomix: {
-    outputDir: 'public',
+    output: {
+      style: 'xml', // 可选: 'plain', 'xml', 'markdown', 'json'
+      removeComments: true,
+      showLineNumbers: false,
+    },
   },
 };
 ```
@@ -138,10 +120,13 @@ export default {
 
 ## 工作原理
 
-1. 插件在 UmiJS 构建流程中注册钩子
-2. 在指定的时机（构建开始或结束）使用 Repomix SDK 的 `pack` 函数
-3. 生成 `llms.txt`（标准版本）和 `llms-full.txt`（详细版本，包含文件摘要、目录结构、行号等）
-4. 文件输出到指定的目录
+1. 插件在 UmiJS 构建流程中注册 `onBuildComplete` 钩子
+2. 在构建完成后使用 Repomix SDK 的 `pack` 函数
+3. 生成两个文件：
+   - `llms.txt`：轻量版本，仅包含文件列表（`files: false`）
+   - `llms-full.txt`：完整版本，包含所有文件内容和默认配置
+4. 文件输出到 UmiJS 配置的输出目录（通常是 `dist`）
+5. 默认使用 `markdown` 格式输出
 
 ## 常见问题
 
@@ -151,11 +136,11 @@ A: `llms.txt` 是一个标准格式，用于帮助 AI 工具（如 GitHub Copilo
 
 ### Q: llms.txt 和 llms-full.txt 有什么区别？
 
-A: `llms.txt` 是标准版本，包含项目的主要代码结构；`llms-full.txt` 是详细版本，包含更多的信息和注释。
+A: `llms.txt` 是轻量版本，仅包含文件列表和基本信息，不包含文件内容；`llms-full.txt` 是完整版本，包含所有文件的完整内容。
 
 ### Q: 可以在开发模式下使用吗？
 
-A: 建议在生产构建时使用此插件。如果需要在开发模式下使用，可以将 `generateOn` 设置为 `buildStart`。
+A: 插件在 `onBuildComplete` 钩子中执行，主要用于生产构建。开发模式下不会自动生成文件。
 
 ## 相关链接
 

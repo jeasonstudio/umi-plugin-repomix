@@ -15,9 +15,9 @@ This directory contains an example configuration for using `umi-plugin-repomix` 
 npm install umi-plugin-repomix --save-dev
 ```
 
-2. Copy the configuration from `.umirc.ts` to your project's configuration file
+2. Copy the configuration from `.umirc.ts` to your project's configuration file (optional, plugin works with default settings)
 
-3. Customize the `repomix.config` options in your UmiJS configuration to fit your project's needs
+3. Customize the repomix options in your UmiJS configuration to fit your project's needs
 
 4. Run your UmiJS build:
 
