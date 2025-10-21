@@ -1,10 +1,10 @@
 import type { IApi } from 'umi';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import * as path from 'path';
 import * as fs from 'fs';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export interface RepomixPluginConfig {
   /**
@@ -76,26 +76,29 @@ export default (api: IApi) => {
         fs.mkdirSync(outputPath, { recursive: true });
       }
 
-      // 构建 repomix 命令
-      let command = 'npx repomix';
+      // 构建 repomix 命令参数数组（安全方式）
+      const args: string[] = ['repomix'];
 
       // 添加配置文件参数
       if (config.configPath) {
-        command += ` --config ${config.configPath}`;
+        // 使用 path.resolve 确保路径安全
+        const resolvedConfigPath = path.resolve(cwd, config.configPath);
+        args.push('--config', resolvedConfigPath);
       }
 
       // 添加输出参数 - 生成到输出目录
-      command += ` --output ${path.join(outputPath, 'llms.txt')}`;
+      const llmsOutputPath = path.join(outputPath, 'llms.txt');
+      args.push('--output', llmsOutputPath);
 
       // 添加额外的参数
       if (config.repomixArgs && config.repomixArgs.length > 0) {
-        command += ` ${config.repomixArgs.join(' ')}`;
+        args.push(...config.repomixArgs);
       }
 
-      api.logger.info(`[repomix] 执行命令: ${command}`);
+      api.logger.info(`[repomix] 执行命令: npx ${args.join(' ')}`);
 
       // 执行命令生成 llms.txt
-      const { stdout: stdout1, stderr: stderr1 } = await execAsync(command, {
+      const { stdout: stdout1, stderr: stderr1 } = await execFileAsync('npx', args, {
         cwd,
         maxBuffer: 10 * 1024 * 1024, // 10MB buffer
       });
@@ -108,14 +111,16 @@ export default (api: IApi) => {
       }
 
       // 生成 llms-full.txt (包含更详细的信息)
-      const fullCommand = command.replace(
-        'llms.txt',
-        'llms-full.txt'
-      ) + ' --verbose';
+      const fullArgs = [...args];
+      const outputIndex = fullArgs.indexOf('--output');
+      if (outputIndex !== -1) {
+        fullArgs[outputIndex + 1] = path.join(outputPath, 'llms-full.txt');
+      }
+      fullArgs.push('--verbose');
 
       api.logger.info(`[repomix] 生成详细版本...`);
 
-      const { stdout: stdout2, stderr: stderr2 } = await execAsync(fullCommand, {
+      const { stdout: stdout2, stderr: stderr2 } = await execFileAsync('npx', fullArgs, {
         cwd,
         maxBuffer: 10 * 1024 * 1024,
       });
