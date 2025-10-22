@@ -2,6 +2,8 @@
 
 [![npm version](https://img.shields.io/npm/v/umi-plugin-repomix.svg)](https://www.npmjs.com/package/umi-plugin-repomix)
 [![npm downloads](https://img.shields.io/npm/dm/umi-plugin-repomix.svg)](https://www.npmjs.com/package/umi-plugin-repomix)
+[![CI](https://github.com/jeasonstudio/umi-plugin-repomix/actions/workflows/ci.yml/badge.svg)](https://github.com/jeasonstudio/umi-plugin-repomix/actions/workflows/ci.yml)
+[![Publish to NPM](https://github.com/jeasonstudio/umi-plugin-repomix/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/jeasonstudio/umi-plugin-repomix/actions/workflows/npm-publish.yml)
 
 UmiJS 插件，用于自动生成 `llms.txt` 和 `llms-full.txt` 文件，方便 AI 辅助工具更好地理解项目代码结构。
 
@@ -147,6 +149,36 @@ A: 插件在 `onBuildComplete` 钩子中执行，主要用于生产构建。开�
 - [UmiJS 插件开发文档](https://umijs.org/docs/guides/plugins)
 - [Repomix 官方文档](https://repomix.com/zh-cn/guide/configuration)
 - [GitHub 仓库](https://github.com/jeasonstudio/umi-plugin-repomix)
+
+## 开发与发布
+
+### 本地开发
+
+```bash
+# 克隆仓库
+git clone https://github.com/jeasonstudio/umi-plugin-repomix.git
+cd umi-plugin-repomix
+
+# 安装依赖
+npm install
+
+# 开发模式（监听文件变化）
+npm run dev
+
+# 构建
+npm run build
+```
+
+### 发布新版本
+
+1. 更新版本号：
+   ```bash
+   npm version patch  # 或 minor、major
+   ```
+
+2. 在 GitHub 上创建新的 Release，GitHub Actions 会自动发布到 NPM
+
+详细说明请参考 [.github/workflows/README.md](.github/workflows/README.md)
 
 ## License
 
