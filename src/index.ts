@@ -44,7 +44,7 @@ export default (api: IApi) => {
       const llmsFullOutputPath = path.join(outputPath, 'llms-full.txt');
 
       // 用户配置 + 默认配置
-      const userRepomixConfig: RepomixConfig = (typeof userConfig === 'object' ? userConfig : {}) || {};
+      const userRepomixConfig: RepomixConfig = typeof userConfig === 'object' ? userConfig : {};
       
       // 默认配置
       const defaultConfig: RepomixConfig = {
