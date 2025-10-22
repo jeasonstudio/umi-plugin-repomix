@@ -1,0 +1,18 @@
+# Source files
+src/
+tsconfig.json
+
+# Development files
+example/
+.gitignore
+
+# Documentation (keep README.md, LICENSE, CHANGELOG.md)
+CONTRIBUTING.md
+
+# Test files
+*.test.ts
+*.spec.ts
+
+# Build artifacts
+*.tsbuildinfo
+.DS_Store
